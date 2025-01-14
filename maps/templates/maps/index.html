@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ülke Verileri Haritası</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="{% static 'css/map-styles.css' %}" />
+</head>
+<body>
+    <div class="container">
+        <div id="map"></div>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Ülke</th>
+                    <th>Yaşam Beklentisi</th>
+                    <th>Mutluluk Seviyesi</th>
+                    <th>Yaşam Maliyeti</th>
+                    <th>Alım Gücü</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Veriler JavaScript ile doldurulacak -->
+            </tbody>
+        </table>
+        <div id="cityDetails" class="city-details">
+            <!-- Şehir detayları buraya yüklenecek -->
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="{% static 'js/world-countries.js' %}"></script>
+    <script src="{% static 'js/map-integration.js' %}"></script>
+</body>
+</html> 

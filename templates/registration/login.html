@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h1 {
+            color: #1976d2;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #546e7a;
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+
+        .form-control {
+            height: 45px;
+            padding: 10px 15px;
+            border: 1px solid #e3f2fd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+        
+        .form-control:focus {
+            border-color: #2196f3;
+            box-shadow: 0 0 0 0.2rem rgba(33,150,243,0.1);
+        }
+        
+        .btn-login {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            height: 45px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            background-color: #1565c0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(25,118,210,0.2);
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #546e7a;
+        }
+        
+        .register-link a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mesaj animasyonları için yeni stiller */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        .alert.fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        /* Tema değişikliği için stil */
+        body.dark-mode {
+            background-color: #121212;
+        }
+        
+        .dark-mode .login-container {
+            background-color: #1e1e1e;
+            box-shadow: 0 2px 15px rgba(255,255,255,0.1);
+        }
+        
+        .dark-mode .login-header h1 {
+            color: #64b5f6;
+        }
+        
+        .dark-mode .login-header p,
+        .dark-mode .register-link {
+            color: #b0bec5;
+        }
+        
+        .dark-mode .form-control {
+            background-color: #2c2c2c;
+            border-color: #444;
+            color: #ffffff;
+        }
+        
+        .dark-mode .form-control:focus {
+            border-color: #64b5f6;
+            box-shadow: 0 0 0 0.2rem rgba(100,181,246,0.1);
+        }
+        
+        .dark-mode .btn-login {
+            background-color: #1976d2;
+        }
+        
+        .dark-mode .btn-login:hover {
+            background-color: #1565c0;
+        }
+        
+        .dark-mode .register-link a {
+            color: #64b5f6;
+        }
+
+        .dark-mode .alert {
+            background-color: #2c2c2c;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <script>
+    // Sayfa yüklendiğinde tema durumunu kontrol et
+    document.addEventListener('DOMContentLoaded', function() {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    });
+    </script>
+
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Giriş Yap</h1>
+            <p>Dünya Ülkeleri Hayat Endeksi'ne hoş geldiniz</p>
+        </div>
+        
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <input type="text" 
+                       name="username" 
+                       class="form-control" 
+                       placeholder="Kullanıcı Adı" 
+                       required>
+            </div>
+            
+            <div class="mb-3">
+                <input type="password" 
+                       name="password" 
+                       class="form-control" 
+                       placeholder="Şifre" 
+                       required>
+            </div>
+            
+            <button type="submit" class="btn btn-login">Giriş Yap</button>
+        </form>
+        
+        <div class="register-link">
+            Hesabınız yok mu? <a href="{% url 'register' %}">Kayıt Ol</a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div id="message-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mesajları otomatik olarak kaldır
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                // 3 saniye sonra mesajı kaldır
+                setTimeout(() => {
+                    alert.classList.add('fade-out');
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 3000);
+
+                // Kapatma butonuna tıklandığında mesajı hemen kaldır
+                const closeButton = alert.querySelector('.btn-close');
+                if (closeButton) {
+                    closeButton.addEventListener('click', () => {
+                        alert.classList.add('fade-out');
+                        setTimeout(() => {
+                            alert.remove();
+                        }, 500);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

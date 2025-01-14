@@ -1,0 +1,1956 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Haritası</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Bootstrap CSS ve JS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Charts için -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .navbar {
+            margin-bottom: 20px;
+            background-color: #e3f2fd;
+        }
+        .navbar-brand {
+            color: #2196f3 !important;
+            font-weight: bold;
+        }
+        .nav-link {
+            color: #64b5f6 !important;
+        }
+        .nav-link:hover {
+            color: #1976d2 !important;
+        }
+        .btn-outline-primary {
+            color: #2196f3;
+            border-color: #2196f3;
+        }
+        .btn-outline-primary:hover {
+            background-color: #2196f3;
+            color: white;
+        }
+        .map-container {
+            max-width: 1600px;
+            margin: 0 60px 20px 60px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        #map {
+            width: 100%;
+            height: 600px;
+            border-radius: 5px;
+        }
+        .info {
+            padding: 10px 15px;
+            font: 15px/18px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            position: absolute !important;
+            top: 30px;
+            left: 30px;
+            margin: 0 !important;
+            z-index: 1000;
+            min-width: 250px;
+        }
+        .info h4 {
+            margin: 0 0 8px;
+            color: #1976d2;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .info-box {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            border: 1px solid #e3f2fd;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 65px;
+            overflow: visible;
+        }
+        .info-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+        }
+        .info-title {
+            font-weight: 600;
+            color: #1976d2;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-right: 50px;
+        }
+        .info-content {
+            color: #546e7a;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding-right: 50px;
+        }
+        .modal-content {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            border-radius: 10px 10px 0 0;
+        }
+        .modal-title {
+            color: #1976d2;
+            font-weight: 600;
+        }
+        .modal-body {
+            padding: 20px;
+            font-size: 16px;
+            color: #546e7a;
+        }
+        .modal-footer {
+            border-top: 1px solid #eee;
+            padding: 15px;
+        }
+        .modal-footer .btn {
+            padding: 8px 20px;
+            font-weight: 500;
+        }
+        .modal-footer .btn-secondary {
+            background-color: #e9ecef;
+            border: none;
+            color: #495057;
+        }
+        .modal-footer .btn-primary {
+            background-color: #1976d2;
+            border: none;
+        }
+        .modal-footer .btn-primary:hover {
+            background-color: #1565c0;
+        }
+        /* Scrollbar tasarımı */
+        .search-results::-webkit-scrollbar {
+            width: 8px;
+        }
+        .search-results::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 8px;
+        }
+        .search-results::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 8px;
+        }
+        .search-results::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .fixed-search-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 300px;
+            z-index: 999;
+        }
+        .search-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 300px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .search-wrapper {
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .search-container .input-group {
+            width: 100%;
+            position: relative;
+        }
+        
+        .search-container input {
+            height: 38px;
+            border: 1px solid #e3f2fd;
+            border-radius: 8px 0 0 8px;
+            font-size: 14px;
+            padding-left: 15px;
+            width: calc(100% - 50px); /* Arama butonu için alan bırak */
+        }
+        
+        .search-container .btn {
+            height: 38px;
+            padding: 0 15px;
+            font-size: 14px;
+            background-color: #2196f3;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            position: absolute;
+            right: 0;
+        }
+        
+        .search-container .btn:hover {
+            background-color: #1976d2;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1001;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .search-result-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        /* Sayfa kaydırıldığında bile sabit kalması için */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            position: relative;
+        }
+        
+        /* Mobil cihazlar için responsive tasarım */
+        @media (max-width: 768px) {
+            .search-container {
+                top: 80px;
+                right: 20px;
+                width: calc(100% - 40px);
+                max-width: 300px;
+            }
+
+            #message-container {
+                top: 140px;
+                left: 20px;
+                width: calc(100% - 40px);
+                max-width: 300px;
+            }
+        }
+        .header h1 {
+            color: #1976d2;
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        .header-subtitle {
+            color: #546e7a;
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Buton stilleri güncelleme */
+        .btn-auth {
+            color: #fff;
+            background-color: #1976d2;
+            border: none;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .btn-auth:hover {
+            background-color: #1565c0;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(25, 118, 210, 0.2);
+        }
+
+        /* Harita kontrolleri için stil */
+        .leaflet-control-zoom {
+            position: absolute !important;
+            bottom: 30px !important;
+            left: 30px !important;
+            margin: 0 !important;
+            z-index: 1000;
+        }
+
+        .leaflet-bar {
+            border: none !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+        }
+
+        .leaflet-bar a {
+            width: 40px !important;
+            height: 40px !important;
+            line-height: 40px !important;
+            font-size: 20px !important;
+            color: #1976d2 !important;
+            background-color: white !important;
+            border: none !important;
+            display: block !important;
+        }
+
+        .leaflet-bar a:first-child {
+            border-radius: 4px 4px 0 0 !important;
+        }
+
+        .leaflet-bar a:last-child {
+            border-radius: 0 0 4px 4px !important;
+        }
+
+        .leaflet-bar a:hover {
+            background-color: #f8f9fa !important;
+            color: #1565c0 !important;
+        }
+
+        .leaflet-touch .leaflet-bar a {
+            width: 40px !important;
+            height: 40px !important;
+            line-height: 40px !important;
+        }
+
+        /* Harita attribution'ı için stil */
+        .leaflet-control-attribution {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            padding: 5px 8px !important;
+            background-color: rgba(255,255,255,0.8) !important;
+            font-size: 12px !important;
+        }
+
+        /* Info box için yeni stiller */
+        .favorite-star {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #ccc;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .favorite-star:hover {
+            color: #ffd700;
+            transform: scale(1.1);
+        }
+
+        .favorite-star.active {
+            color: #ffd700;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: transparent;
+            border: none;
+            padding: 20px 0;
+        }
+        
+        .card-title {
+            color: #1976d2;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-add-favorites {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add-favorites:hover {
+            background-color: #1565c0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(25,118,210,0.2);
+            color: white;
+        }
+        
+        .btn-add-favorites i {
+            font-size: 16px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-buttons .btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .favorite-star {
+            cursor: pointer;
+            color: #ccc;
+            transition: color 0.3s ease;
+        }
+
+        .favorite-star.active {
+            color: #ffd700;
+        }
+
+        .gauge-container {
+            position: absolute;
+            top: 50%;
+            right: 5px;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            overflow: visible;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+        
+        .gauge-label {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Gauge etiketlerini özelleştir */
+        .google-visualization-gauge text {
+            font-size: 8px !important;
+            fill: #666 !important;
+            font-family: Arial, sans-serif !important;
+        }
+
+        /* Gauge iğnesini özelleştir */
+        .google-visualization-gauge-needle {
+            stroke-width: 1.5 !important;
+            stroke: #333 !important;
+        }
+
+        /* Gauge arka planını temizle */
+        .google-visualization-gauge > div {
+            background: transparent !important;
+        }
+
+        /* Gauge çerçevesini kaldır */
+        .google-visualization-gauge path:first-child {
+            stroke: none !important;
+        }
+
+        .google-visualization-gauge > svg {
+            display: block;
+            margin: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .google-visualization-gauge {
+            width: 40px !important;
+            height: 40px !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* SVG elementlerinin tam görünmesini sağla */
+        .google-visualization-gauge svg > g {
+            transform: translate(20px, 20px) !important;
+        }
+
+        .info-grid-container {
+            width: 800px;
+            margin: 0;
+            margin-left: 60px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .row {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .col-md-3 {
+            width: 25%;
+            padding-right: 6px;
+            padding-left: 6px;
+            margin: 0;
+        }
+
+        .btn-favorite {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-favorite:hover {
+            background-color: #1565c0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(25,118,210,0.2);
+            color: white;
+        }
+        
+        .btn-favorite i {
+            font-size: 16px;
+        }
+
+        .favorite-container {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            width: 800px;
+            margin-left: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .country-name {
+            margin: 0;
+            color: #1976d2;
+            font-size: 24px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Favoriler butonu için stil */
+        .btn-primary {
+            background-color: #1976d2;
+            border: none;
+            padding: 8px 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #1565c0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(25, 118, 210, 0.2);
+        }
+
+        .gap-3 {
+            gap: 1rem;
+        }
+
+        /* Mesaj animasyonları için stiller */
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            z-index: 2000;
+            animation: slideInLeft 0.5s ease-out;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOutLeft {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+        }
+
+        .alert.fade-out {
+            animation: fadeOutLeft 0.5s ease-out forwards;
+        }
+
+        /* Mesaj container'ı için stil */
+        #message-container {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            z-index: 2000;
+            width: 300px;
+        }
+
+        /* Arama kutusu için güncellenmiş stil */
+        .search-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 300px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        /* Mobil cihazlar için responsive tasarım */
+        @media (max-width: 768px) {
+            .search-container {
+                top: 80px;
+                right: 20px;
+                width: calc(100% - 40px);
+                max-width: 300px;
+            }
+
+            #message-container {
+                top: 140px;
+                left: 20px;
+                width: calc(100% - 40px);
+                max-width: 300px;
+            }
+        }
+
+        /* Alert stilleri */
+        .alert {
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: slideInLeft 0.5s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .alert.fade-out {
+            animation: fadeOutLeft 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeOutLeft {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+        }
+
+        /* SweetAlert sol üst köşe bildirimleri için özel stil */
+        .swal-popup-left {
+            margin-top: 80px !important;  /* Navbar'ın altında görünmesi için */
+            margin-left: 20px !important;
+        }
+
+        /* SweetAlert toast stilini özelleştir */
+        .swal2-toast {
+            background-color: white !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            padding: 10px 15px !important;
+            border-radius: 8px !important;
+            animation: slideInLeft 0.5s ease-out !important;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Tema değişikliği için stil */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .dark-mode .navbar {
+            background-color: #333;
+        }
+        .dark-mode .navbar-brand, .dark-mode .nav-link {
+            color: #ffffff !important;
+        }
+        .dark-mode .map-container, .dark-mode .info-grid-container, .dark-mode .favorite-container {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        .dark-mode .info-box {
+            background-color: #2c2c2c;
+            border-color: #444;
+        }
+        .dark-mode .btn {
+            background-color: #444;
+            color: #ffffff;
+        }
+        .dark-mode .btn:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    {% csrf_token %}
+    <script>
+    // Sayfa yüklendiğinde tema durumunu kontrol et
+    document.addEventListener('DOMContentLoaded', function() {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    });
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        // Tema durumunu localStorage'da sakla
+        if (document.body.classList.contains('dark-mode')) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    }
+    </script>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'user_map' %}">Dünya Ülkeleri Hayat Endeksi</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'user_map' %}">Ana Sayfa</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Tema Değiştir Butonu -->
+                    <button class="btn btn-outline-primary" onclick="toggleTheme()">Temayı Değiştir</button>
+                    <!-- Favoriler Butonu -->
+                    <a href="{% url 'favorites' %}" class="btn btn-primary">
+                        <i class="fas fa-star me-2"></i>
+                        Favorilerim
+                    </a>
+                    <span class="me-3 text-primary">Hoş geldiniz, {{ user.username }}</span>
+                    <a href="#" onclick="confirmLogout()" class="btn btn-auth">Çıkış Yap</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mesaj Container'ı -->
+    <div id="message-container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Arama Kutusu -->
+    <div class="search-container">
+        <div class="search-wrapper">
+            <div class="input-group">
+                <input type="text" 
+                       id="countrySearch" 
+                       class="form-control" 
+                       placeholder="Ülke ara..." 
+                       autocomplete="off">
+                <button class="btn btn-primary" id="searchButton">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div id="searchResults" class="search-results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Harita Container -->
+    <div class="map-container">
+        <div id="map"></div>
+    </div>
+
+    <!-- Favori Butonları Container -->
+    <div class="favorite-container" style="margin-left: 60px; margin-bottom: 20px;">
+        <div class="d-flex align-items-center gap-3">
+            <h2 class="country-name mb-0">
+                Turkey
+            </h2>
+            <div class="favorite-buttons">
+                <button class="btn btn-success btn-add-favorite" onclick="addToFavorites()">
+                    <i class="fas fa-heart"></i>
+                    Favorilere Ekle
+                </button>
+                <button class="btn btn-danger btn-remove-favorite" onclick="removeFromFavorites()" style="display: none;">
+                    <i class="fas fa-heart-broken"></i>
+                    Favorilerden Çıkar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tablo Container -->
+    <div class="info-grid-container">
+        <div class="row">
+            <!-- Birinci Sütun -->
+            <div class="col-md-3">
+                <div class="info-box mb-3" data-field="City">
+                    <div class="info-title">City</div>
+                    <div class="info-content">{{ country_data.City }}</div>
+                    <div class="gauge-container" id="gauge-city"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="Rank_x">
+                    <div class="info-title">Rank X</div>
+                    <div class="info-content">{{ country_data.Rank_x }}</div>
+                    <div class="gauge-container" id="gauge-rank-x"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="sunshine_hours">
+                    <div class="info-title">Sunshine Hours</div>
+                    <div class="info-content">{{ country_data.sunshine_hours }}</div>
+                    <div class="gauge-container" id="gauge-sunshine-hours"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="life_expectancy">
+                    <div class="info-title">Life Expectancy</div>
+                    <div class="info-content">{{ country_data.life_expectancy }}</div>
+                    <div class="gauge-container" id="gauge-life-expectancy"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="pollution_index">
+                    <div class="info-title">Pollution Index</div>
+                    <div class="info-content">{{ country_data.pollution_index }}</div>
+                    <div class="gauge-container" id="gauge-pollution-index"></div>
+                </div>
+            </div>
+
+            <!-- İkinci Sütun -->
+            <div class="col-md-3">
+                <div class="info-box mb-3" data-field="happiness_levels">
+                    <div class="info-title">Happiness Levels</div>
+                    <div class="info-content">{{ country_data.happiness_levels }}</div>
+                    <div class="gauge-container" id="gauge-happiness-levels"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="outdoor_activities">
+                    <div class="info-title">Outdoor Activities</div>
+                    <div class="info-content">{{ country_data.outdoor_activities }}</div>
+                    <div class="gauge-container" id="gauge-outdoor-activities"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="takeout_places">
+                    <div class="info-title">Take Out Places</div>
+                    <div class="info-content">{{ country_data.takeout_places }}</div>
+                    <div class="gauge-container" id="gauge-takeout-places"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="cost_living_index">
+                    <div class="info-title">Cost of Living Index</div>
+                    <div class="info-content">{{ country_data.cost_living_index }}</div>
+                    <div class="gauge-container" id="gauge-cost-living-index"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="rent_index">
+                    <div class="info-title">Rent Index</div>
+                    <div class="info-content">{{ country_data.rent_index }}</div>
+                    <div class="gauge-container" id="gauge-rent-index"></div>
+                </div>
+            </div>
+
+            <!-- Üçüncü Sütun -->
+            <div class="col-md-3">
+                <div class="info-box mb-3" data-field="cost_living_rent_index">
+                    <div class="info-title">Cost of Living Plus Rent Index</div>
+                    <div class="info-content">{{ country_data.cost_living_rent_index }}</div>
+                    <div class="gauge-container" id="gauge-cost-living-rent-index"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="groceries_index">
+                    <div class="info-title">Groceries Index</div>
+                    <div class="info-content">{{ country_data.groceries_index }}</div>
+                    <div class="gauge-container" id="gauge-groceries-index"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="restaurant_price_index">
+                    <div class="info-title">Restaurant Price Index</div>
+                    <div class="info-content">{{ country_data.restaurant_price_index }}</div>
+                    <div class="gauge-container" id="gauge-restaurant-price-index"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="local_purchasing_power">
+                    <div class="info-title">Local Purchasing Power Index</div>
+                    <div class="info-content">{{ country_data.local_purchasing_power }}</div>
+                    <div class="gauge-container" id="gauge-local-purchasing-power"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="rank_y">
+                    <div class="info-title">Rank Y</div>
+                    <div class="info-content">{{ country_data.rank_y }}</div>
+                    <div class="gauge-container" id="gauge-rank-y"></div>
+                </div>
+            </div>
+
+            <!-- Dördüncü Sütun -->
+            <div class="col-md-3">
+                <div class="info-box mb-3" data-field="obesity_levels">
+                    <div class="info-title">Obesity Levels</div>
+                    <div class="info-content">{{ country_data.obesity_levels }}</div>
+                    <div class="gauge-container" id="gauge-obesity-levels"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="annual_hours_worked">
+                    <div class="info-title">Annual Hours Worked</div>
+                    <div class="info-content">{{ country_data.annual_hours_worked }}</div>
+                    <div class="gauge-container" id="gauge-annual-hours-worked"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="gym_membership_cost">
+                    <div class="info-title">Gym Membership Cost</div>
+                    <div class="info-content">{{ country_data.gym_membership_cost }}</div>
+                    <div class="gauge-container" id="gauge-gym-membership-cost"></div>
+                </div>
+                
+                <div class="info-box mb-3" data-field="water_bottle_cost">
+                    <div class="info-title">Water Bottle Cost</div>
+                    <div class="info-content">{{ country_data.water_bottle_cost }}</div>
+                    <div class="gauge-container" id="gauge-water-bottle-cost"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Çıkış Onayı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Oturumu kapatmak istediğinizden emin misiniz?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" onclick="handleLogout()">Çıkış Yap</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Harita Script'i -->
+    <script>
+        // Haritayı başlat
+        var map = L.map('map', {
+            maxBounds: [[-60, -180], [85, 180]], // Antarktika'yı sınırla
+            minZoom: 2,
+            maxZoom: 8
+        }).setView([30, 0], 2);
+        
+        // OpenStreetMap altlığını ekle
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            noWrap: true, // Haritanın tekrarını engelle
+            bounds: [[-60, -180], [85, 180]] // Görünüm sınırları
+        }).addTo(map);
+
+        // GeoJSON verilerini yükle
+        fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+            .then(response => response.json())
+            .then(data => {
+                // Antarktika'yı filtrele
+                data.features = data.features.filter(feature => 
+                    feature.properties.ADMIN !== 'Antarctica');
+                
+                // Ülke katmanını oluştur
+                L.geoJSON(data, {
+                    style: function(feature) {
+                        return {
+                            fillColor: '#3388ff',
+                            weight: 1,
+                            opacity: 1,
+                            color: 'white',
+                            fillOpacity: 0.3
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        // Hover ve tıklama efektleri
+                        layer.on({
+                            mouseover: function(e) {
+                                var layer = e.target;
+                                layer.setStyle({
+                                    fillColor: '#666',
+                                    fillOpacity: 0.7
+                                });
+                                layer.bindPopup(feature.properties.ADMIN).openPopup();
+                            },
+                            mouseout: function(e) {
+                                var layer = e.target;
+                                layer.setStyle({
+                                    fillColor: '#3388ff',
+                                    fillOpacity: 0.3
+                                });
+                            },
+                            click: function(e) {
+                                // Haritayı tıklanan ülkeye zoom yap
+                                map.fitBounds(e.target.getBounds());
+                                
+                                // Tıklanan ülkenin adını al
+                                const countryName = feature.properties.ADMIN;
+                                
+                                // Arama kutusunu güncelle
+                                document.getElementById('countrySearch').value = countryName;
+                                
+                                // Ülke verilerini getir ve info-box'ları güncelle
+                                getCountryData(countryName);
+                            }
+                        });
+                    }
+                }).addTo(map);
+            })
+            .catch(error => console.error('Hata:', error));
+
+        // Bilgi kutusu ekle
+        var info = L.control({ position: 'topleft' });
+        info.onAdd = function(map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+
+        info.update = function(props) {
+            this._div.innerHTML = '<h4>Ülke Bilgisi</h4>' + 
+                (props ? '<b>' + props.ADMIN + '</b>' : 'Fare ile ülkenin üzerine gelin');
+        };
+
+        info.addTo(map);
+    </script>
+
+    <!-- Çıkış script'ini güncelleyin -->
+    <script>
+    function confirmLogout() {
+        var myModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+        myModal.show();
+    }
+
+    function handleLogout() {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch('{% url "logout" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+        }).then(() => {
+            window.location.href = '{% url "map" %}';
+        });
+    }
+    </script>
+
+    <script>
+    function toggleFavorite(starElement, dataType, value) {
+        starElement.classList.toggle('active');
+        
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const isFavorite = starElement.classList.contains('active');
+        
+        // Favori durumunu sunucuya gönder
+        fetch('/api/favorites/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                data_type: dataType,
+                value: value,
+                is_favorite: isFavorite
+            })
+        });
+    }
+    </script>
+
+    <!-- JavaScript fonksiyonu ekle -->
+    <script>
+    function addAllToFavorites() {
+        const stars = document.querySelectorAll('.favorite-star:not(.active)');
+        stars.forEach(star => {
+            star.click();
+        });
+        
+        // Bildirim göster
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 9999;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        `;
+        notification.innerHTML = 'Tüm veriler favorilere eklendi!';
+        document.body.appendChild(notification);
+        
+        // 3 saniye sonra bildirimi kaldır
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Animasyonlar için CSS ekle
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    </script>
+
+    <!-- JavaScript bölümüne saveFavorites fonksiyonunu ekleyin -->
+    <script>
+    function saveFavorites() {
+        const activeStars = document.querySelectorAll('.favorite-star.active');
+        const favorites = [];
+
+        activeStars.forEach(star => {
+            const infoBox = star.closest('.info-box');
+            const countryName = 'Turkey'; // Şu an için sabit
+            const dataType = infoBox.querySelector('.info-title').textContent;
+            const value = infoBox.querySelector('.info-content').textContent;
+
+            favorites.push({
+                country_name: countryName,
+                data_type: dataType,
+                value: value
+            });
+        });
+
+        // Favorileri sunucuya gönder
+        fetch('/save_favorites/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ favorites: favorites })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Başarılı bildirimini göster
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background-color: #4caf50;
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    z-index: 9999;
+                    font-size: 14px;
+                    font-weight: 500;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.innerHTML = 'Favoriler başarıyla kaydedildi!';
+                document.body.appendChild(notification);
+                
+                // 3 saniye sonra bildirimi kaldır
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+            } else {
+                alert('Favoriler kaydedilirken bir hata oluştu.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+    </script>
+
+    <script>
+    google.charts.load('current', {'packages':['gauge']});
+    google.charts.setOnLoadCallback(drawGauges);
+
+    function drawGauges() {
+        document.querySelectorAll('.info-box').forEach(box => {
+            const title = box.querySelector('.info-title').textContent;
+            const value = parseFloat(box.querySelector('.info-content').textContent);
+            const gaugeContainer = box.querySelector('.gauge-container');
+            
+            if (gaugeContainer) {
+                const gaugeId = gaugeContainer.id;
+                if (gaugeId) {
+                    drawGauge(gaugeId, title, value);
+                }
+            }
+        });
+    }
+
+    function drawGauge(containerId, title, value) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error(`Container not found: ${containerId}`);
+            return;
+        }
+
+        // Metrik değerlerini tanımla
+        const metricRanges = {
+            'Rank X': { min: 1, max: 200, inverse: true },
+            'Sunshine Hours': { min: 0, max: 4000, inverse: false },
+            'Life Expectancy': { min: 50, max: 90, inverse: false },
+            'Pollution Index': { min: 0, max: 100, inverse: true },
+            'Happiness Levels': { min: 0, max: 10, inverse: false },
+            'Outdoor Activities': { min: 0, max: 500, inverse: false },
+            'Take Out Places': { min: 0, max: 3000, inverse: false },
+            'Cost of Living Index': { min: 0, max: 150, inverse: true },
+            'Rent Index': { min: 0, max: 100, inverse: true },
+            'Cost of Living Plus Rent Index': { min: 0, max: 150, inverse: true },
+            'Groceries Index': { min: 0, max: 150, inverse: true },
+            'Restaurant Price Index': { min: 0, max: 150, inverse: true },
+            'Local Purchasing Power Index': { min: 0, max: 200, inverse: false },
+            'Rank Y': { min: 1, max: 200, inverse: true },
+            'Obesity Levels': { min: 0, max: 50, inverse: true },
+            'Annual Hours Worked': { min: 1000, max: 2500, inverse: true },
+            'Gym Membership Cost': { min: 0, max: 100, inverse: true },
+            'Water Bottle Cost': { min: 0, max: 5, inverse: true }
+        };
+
+        // Metrik bilgilerini al
+        const metricInfo = metricRanges[title] || { min: 0, max: 100, inverse: false };
+        
+        // Değeri normalize et
+        value = parseFloat(value);
+        if (isNaN(value)) value = 50;
+        
+        value = Math.max(metricInfo.min, Math.min(value, metricInfo.max));
+        let normalizedValue = ((value - metricInfo.min) / (metricInfo.max - metricInfo.min)) * 100;
+        
+        // Gerekirse değeri tersine çevir
+        if (metricInfo.inverse) {
+            normalizedValue = 100 - normalizedValue;
+        }
+
+        const data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['', normalizedValue]
+        ]);
+
+        const options = {
+            width: 40,
+            height: 40,
+            redFrom: 0,
+            redTo: 35,
+            yellowFrom: 35,
+            yellowTo: 65,
+            greenFrom: 65,
+            greenTo: 100,
+            min: 0,
+            max: 100,
+            startAngle: 180,
+            endAngle: 0,
+            majorTicks: [],
+            minorTicks: 2,
+            backgroundColor: { fill: 'transparent' },
+            animation: {
+                duration: 400,
+                easing: 'out'
+            }
+        };
+
+        const chart = new google.visualization.Gauge(container);
+        chart.draw(data, options);
+    }
+
+    function getCountryData(countryName) {
+        console.log('Fetching data for:', countryName);
+        
+        fetch(`/api/country-data/${encodeURIComponent(countryName)}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Country not found');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    Swal.fire({
+                        title: 'Veri Bulunamadı',
+                        text: `${countryName} için veri bulunamadı.`,
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+
+                console.log('API Response:', data);
+                
+                // Ülke adını güncelle
+                const countryTitle = document.querySelector('.country-name');
+                if (countryTitle) {
+                    countryTitle.textContent = countryName;
+                }
+
+                // Veri eşleştirme haritası
+                const dataMapping = {
+                    'City': 'City',
+                    'Rank_x': 'Rank_x',
+                    'sunshine_hours': 'Sunshine hours(City)',
+                    'life_expectancy': 'Life expectancy(years) (Country)',
+                    'pollution_index': 'Pollution(Index score) (City)',
+                    'happiness_levels': 'Happiness levels(Country)',
+                    'outdoor_activities': 'Outdoor activities(City)',
+                    'takeout_places': 'Number of take out places(City)',
+                    'cost_living_index': 'Cost of Living Index',
+                    'rent_index': 'Rent Index',
+                    'cost_living_rent_index': 'Cost of Living Plus Rent Index',
+                    'groceries_index': 'Groceries Index',
+                    'restaurant_price_index': 'Restaurant Price Index',
+                    'local_purchasing_power': 'Local Purchasing Power Index',
+                    'rank_y': 'Rank_y',
+                    'obesity_levels': 'Obesity levels(Country)',
+                    'annual_hours_worked': 'Annual avg. hours worked',
+                    'gym_membership_cost': 'gym_membership_cost',
+                    'water_bottle_cost': 'water_bottle_cost'
+                };
+
+                // Her info-box için veriyi güncelle
+                document.querySelectorAll('.info-box').forEach(box => {
+                    const fieldName = box.getAttribute('data-field');
+                    const contentDiv = box.querySelector('.info-content');
+                    const gaugeDiv = box.querySelector('.gauge-container');
+                    
+                    if (fieldName && contentDiv) {
+                        // API'den gelen veriyi al
+                        let value = data[fieldName] || data[dataMapping[fieldName]];
+                        
+                        console.log(`Field: ${fieldName}, Value:`, value); // Debug için
+                        
+                        if (value !== null && value !== undefined) {
+                            // Sayısal değeri güncelle
+                            if (typeof value === 'number') {
+                                contentDiv.textContent = value.toLocaleString('en-US', {
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 0
+                                });
+                            } else {
+                                contentDiv.textContent = value;
+                            }
+                            
+                            // Göstergeyi güncelle
+                            if (gaugeDiv && typeof value === 'number') {
+                                const gaugeId = gaugeDiv.id;
+                                const metricTitle = box.querySelector('.info-title').textContent;
+                                drawGauge(gaugeId, metricTitle, value);
+                            }
+                        } else {
+                            contentDiv.textContent = '-';
+                            if (gaugeDiv) {
+                                drawGauge(gaugeDiv.id, fieldName, 50);
+                            }
+                        }
+                    }
+                });
+
+                document.getElementById('countrySearch').value = '';
+                document.getElementById('searchResults').style.display = 'none';
+                checkFavoriteStatus();  // Ülke değiştiğinde favori durumunu kontrol et
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Hata',
+                    text: 'Bu ülke için veri bulunamadı veya bir hata oluştu.',
+                    icon: 'error',
+                    confirmButtonText: 'Tamam'
+                });
+            });
+    }
+
+    // Sayfa yüklendiğinde ve pencere boyutu değiştiğinde gauge'leri güncelle
+    window.addEventListener('load', drawGauges);
+    window.addEventListener('resize', drawGauges);
+    </script>
+
+    <!-- Arama işlevselliği için JavaScript kodları -->
+    <script>
+    let currentFocus = -1;
+
+    document.getElementById('countrySearch').addEventListener('input', function(e) {
+        const searchTerm = e.target.value;
+        const resultsContainer = document.getElementById('searchResults');
+        currentFocus = -1;
+        
+        if (searchTerm.length >= 1) {
+            fetch(`/search-countries/?term=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(countries => {
+                    if (countries.length > 0) {
+                        resultsContainer.innerHTML = countries
+                            .map(country => `
+                                <div class="search-result-item" data-country="${country}">
+                                    ${country}
+                                </div>
+                            `).join('');
+                        resultsContainer.style.display = 'block';
+                    } else {
+                        resultsContainer.innerHTML = '<div class="search-result-item">Sonuç bulunamadı</div>';
+                        resultsContainer.style.display = 'block';
+                    }
+                })
+                .catch(error => console.error('Arama hatası:', error));
+        } else {
+            resultsContainer.style.display = 'none';
+        }
+    });
+
+    // Klavye tuşları ile gezinme
+    document.getElementById('countrySearch').addEventListener('keydown', function(e) {
+        const resultsContainer = document.getElementById('searchResults');
+        const items = resultsContainer.getElementsByClassName('search-result-item');
+        
+        if (!items.length) return;
+
+        switch(e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                currentFocus++;
+                if (currentFocus >= items.length) currentFocus = 0;
+                setActiveItem(items);
+                break;
+
+            case 'ArrowUp':
+                e.preventDefault();
+                currentFocus--;
+                if (currentFocus < 0) currentFocus = items.length - 1;
+                setActiveItem(items);
+                break;
+
+            case 'Enter':
+                if (currentFocus > -1 && items[currentFocus]) {
+                    e.preventDefault();
+                    const country = items[currentFocus].dataset.country;
+                    getCountryData(country);
+                    resultsContainer.style.display = 'none';
+                }
+                break;
+
+            case 'Escape':
+                resultsContainer.style.display = 'none';
+                currentFocus = -1;
+                break;
+        }
+    });
+
+    function setActiveItem(items) {
+        Array.from(items).forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        if (currentFocus >= 0 && items[currentFocus]) {
+            items[currentFocus].classList.add('active');
+            items[currentFocus].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    // Arama sonuçlarına tıklama
+    document.getElementById('searchResults').addEventListener('click', function(e) {
+        const item = e.target.closest('.search-result-item');
+        if (item) {
+            const country = item.dataset.country;
+            document.getElementById('countrySearch').value = country;
+            getCountryData(country);
+            this.style.display = 'none';
+        }
+    });
+
+    // Sayfa herhangi bir yerine tıklandığında sonuçları gizle
+    document.addEventListener('click', function(e) {
+        const searchContainer = document.querySelector('.search-container');
+        const resultsContainer = document.getElementById('searchResults');
+        if (!searchContainer.contains(e.target)) {
+            resultsContainer.style.display = 'none';
+        }
+    });
+
+    // Arama fonksiyonu
+    function searchCountries(term) {
+        if (term.length < 1) {
+            document.getElementById('searchResults').style.display = 'none';
+            return;
+        }
+
+        fetch(`/search_countries/?term=${encodeURIComponent(term)}`)
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('searchResults');
+                resultsDiv.innerHTML = '';
+                
+                if (data.length > 0) {
+                    data.forEach(country => {
+                        const div = document.createElement('div');
+                        div.className = 'search-result-item';
+                        div.textContent = country;
+                        div.dataset.country = country;
+                        div.onclick = function() {
+                            document.getElementById('countrySearch').value = country;
+                            resultsDiv.style.display = 'none';
+                            getCountryData(country);
+                        };
+                        resultsDiv.appendChild(div);
+                    });
+                    resultsDiv.style.display = 'block';
+                } else {
+                    resultsDiv.style.display = 'none';
+                }
+            });
+    }
+
+    // Ülke verilerini getirme ve güncelleme fonksiyonu
+    function getCountryData(countryName) {
+        console.log('Fetching data for:', countryName);
+        
+        fetch(`/api/country-data/${encodeURIComponent(countryName)}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Country not found');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    Swal.fire({
+                        title: 'Veri Bulunamadı',
+                        text: `${countryName} için veri bulunamadı.`,
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+
+                console.log('API Response:', data);
+                
+                // Ülke adını güncelle
+                const countryTitle = document.querySelector('.country-name');
+                if (countryTitle) {
+                    countryTitle.textContent = countryName;
+                }
+
+                // Veri eşleştirme haritası
+                const dataMapping = {
+                    'City': 'City',
+                    'Rank_x': 'Rank_x',
+                    'sunshine_hours': 'Sunshine hours(City)',
+                    'life_expectancy': 'Life expectancy(years) (Country)',
+                    'pollution_index': 'Pollution(Index score) (City)',
+                    'happiness_levels': 'Happiness levels(Country)',
+                    'outdoor_activities': 'Outdoor activities(City)',
+                    'takeout_places': 'Number of take out places(City)',
+                    'cost_living_index': 'Cost of Living Index',
+                    'rent_index': 'Rent Index',
+                    'cost_living_rent_index': 'Cost of Living Plus Rent Index',
+                    'groceries_index': 'Groceries Index',
+                    'restaurant_price_index': 'Restaurant Price Index',
+                    'local_purchasing_power': 'Local Purchasing Power Index',
+                    'rank_y': 'Rank_y',
+                    'obesity_levels': 'Obesity levels(Country)',
+                    'annual_hours_worked': 'Annual avg. hours worked',
+                    'gym_membership_cost': 'gym_membership_cost',
+                    'water_bottle_cost': 'water_bottle_cost'
+                };
+
+                // Her info-box için veriyi güncelle
+                document.querySelectorAll('.info-box').forEach(box => {
+                    const fieldName = box.getAttribute('data-field');
+                    const contentDiv = box.querySelector('.info-content');
+                    const gaugeDiv = box.querySelector('.gauge-container');
+                    
+                    if (fieldName && contentDiv) {
+                        // API'den gelen veriyi al
+                        let value = data[fieldName] || data[dataMapping[fieldName]];
+                        
+                        console.log(`Field: ${fieldName}, Value:`, value); // Debug için
+                        
+                        if (value !== null && value !== undefined) {
+                            // Sayısal değeri güncelle
+                            if (typeof value === 'number') {
+                                contentDiv.textContent = value.toLocaleString('en-US', {
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 0
+                                });
+                            } else {
+                                contentDiv.textContent = value;
+                            }
+                            
+                            // Göstergeyi güncelle
+                            if (gaugeDiv && typeof value === 'number') {
+                                const gaugeId = gaugeDiv.id;
+                                const metricTitle = box.querySelector('.info-title').textContent;
+                                drawGauge(gaugeId, metricTitle, value);
+                            }
+                        } else {
+                            contentDiv.textContent = '-';
+                            if (gaugeDiv) {
+                                drawGauge(gaugeDiv.id, fieldName, 50);
+                            }
+                        }
+                    }
+                });
+
+                document.getElementById('countrySearch').value = '';
+                document.getElementById('searchResults').style.display = 'none';
+                checkFavoriteStatus();  // Ülke değiştiğinde favori durumunu kontrol et
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Hata',
+                    text: 'Bu ülke için veri bulunamadı veya bir hata oluştu.',
+                    icon: 'error',
+                    confirmButtonText: 'Tamam'
+                });
+            });
+    }
+
+    // Arama kutusu event listener'ları
+    document.getElementById('countrySearch').addEventListener('input', function(e) {
+        searchCountries(e.target.value);
+    });
+
+    document.getElementById('searchButton').addEventListener('click', function() {
+        const searchTerm = document.getElementById('countrySearch').value;
+        if (searchTerm) {
+            getCountryData(searchTerm);
+            document.getElementById('searchResults').style.display = 'none';
+        }
+    });
+
+    // Enter tuşu ile arama
+    document.getElementById('countrySearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const searchTerm = this.value;
+            if (searchTerm) {
+                getCountryData(searchTerm);
+                document.getElementById('searchResults').style.display = 'none';
+            }
+        }
+    });
+
+    // CSS stilleri ekle
+    const searchStyles = document.createElement('style');
+    searchStyles.textContent = `
+        .search-result-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .search-result-item:hover,
+        .search-result-item.active {
+            background-color: #e9ecef;
+            color: #000;
+        }
+    `;
+    document.head.appendChild(searchStyles);
+    </script>
+
+    <script>
+    // Favori durumunu kontrol eden ve butonları güncelleyen fonksiyon
+    function updateFavoriteButtons(isFavorite) {
+        const addButton = document.querySelector('.btn-add-favorite');
+        const removeButton = document.querySelector('.btn-remove-favorite');
+        
+        if (isFavorite) {
+            addButton.style.display = 'none';
+            removeButton.style.display = 'inline-block';
+        } else {
+            addButton.style.display = 'inline-block';
+            removeButton.style.display = 'none';
+        }
+    }
+
+    // Ülke değiştiğinde favori durumunu kontrol et
+    function checkFavoriteStatus() {
+        const countryName = document.querySelector('.country-name').textContent.trim();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch('/check-favorite-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                country_name: countryName
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            updateFavoriteButtons(data.is_favorite);
+        });
+    }
+
+    // Favorilere ekleme fonksiyonu
+    function addToFavorites() {
+        const countryName = document.querySelector('.country-name').textContent.trim();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch('/add-to-favorites/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                country_name: countryName,
+                action: 'add'
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Sunucu hatası');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                updateFavoriteButtons(true);
+                
+                Swal.fire({
+                    title: 'Başarılı!',
+                    text: data.message,
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-start',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    customClass: {
+                        popup: 'swal-popup-left'
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Hata!',
+                text: error.message || 'Bir hata oluştu.',
+                icon: 'error',
+                toast: true,
+                position: 'top-start',
+                showConfirmButton: false,
+                timer: 3000,
+                customClass: {
+                    popup: 'swal-popup-left'
+                }
+            });
+        });
+    }
+
+    // Favorilerden çıkarma fonksiyonu
+    function removeFromFavorites() {
+        const countryName = document.querySelector('.country-name').textContent.trim();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch('/add-to-favorites/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                country_name: countryName,
+                action: 'remove'
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Sunucu hatası');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'removed') {
+                updateFavoriteButtons(false);
+                
+                Swal.fire({
+                    title: 'Bilgi',
+                    text: data.message,
+                    icon: 'info',
+                    toast: true,
+                    position: 'top-start',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    customClass: {
+                        popup: 'swal-popup-left'
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Hata!',
+                text: error.message || 'Bir hata oluştu.',
+                icon: 'error',
+                toast: true,
+                position: 'top-start',
+                showConfirmButton: false,
+                timer: 3000,
+                customClass: {
+                    popup: 'swal-popup-left'
+                }
+            });
+        });
+    }
+
+    // Sayfa yüklendiğinde ve ülke değiştiğinde favori durumunu kontrol et
+    document.addEventListener('DOMContentLoaded', checkFavoriteStatus);
+    </script>
+
+    <script>
+    // Mesajları otomatik olarak kaldır
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            // 3 saniye sonra mesajı kaldır
+            setTimeout(() => {
+                alert.classList.add('fade-out');
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            }, 3000);
+
+            // Kapatma butonuna tıklandığında mesajı hemen kaldır
+            const closeButton = alert.querySelector('.btn-close');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    alert.classList.add('fade-out');
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                });
+            }
+        });
+    });
+    </script>
+</body>
+</html> 

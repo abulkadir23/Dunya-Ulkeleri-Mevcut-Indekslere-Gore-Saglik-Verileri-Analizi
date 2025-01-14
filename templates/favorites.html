@@ -1,0 +1,459 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorilerim</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 30px;
+            background-color: #f0f2f5;
+        }
+
+        .navbar {
+            margin-bottom: 30px;
+            background-color: #e3f2fd;
+        }
+
+        .favorites-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: flex-start;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .country-card {
+            flex: 1 1 calc(50% - 30px);
+            min-width: 400px;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 768px) {
+            .country-card {
+                flex: 1 1 100%;
+                min-width: 280px;
+                padding: 15px;
+            }
+        }
+
+        .country-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .country-name {
+            color: #1976d2;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .info-box {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            border: 1px solid #e3f2fd;
+            transition: all 0.3s ease;
+        }
+
+        .info-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #1976d2;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-content {
+            color: #546e7a;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .btn-remove {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-remove:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+
+        /* Mesaj stilleri */
+        #message-container {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            z-index: 2000;
+            width: 300px;
+        }
+
+        .alert {
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: slideInLeft 0.5s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobil görünüm için */
+        @media (max-width: 768px) {
+            .favorites-container {
+                padding: 0 20px;
+                gap: 20px;
+            }
+            
+            .country-card {
+                flex: 1 1 100%;
+                min-width: 280px;
+                padding: 15px;
+            }
+            
+            .info-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 8px;
+            }
+            
+            .info-box {
+                padding: 8px;
+            }
+            
+            .info-title {
+                font-size: 0.7rem;
+            }
+            
+            .info-content {
+                font-size: 0.8rem;
+            }
+        }
+
+        .btn-remove-favorite {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-remove-favorite:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+            color: white;
+        }
+
+        .btn-remove-favorite i {
+            font-size: 16px;
+        }
+
+        /* Tema değişikliği için stil */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .dark-mode .navbar {
+            background-color: #333;
+        }
+        .dark-mode .navbar-brand {
+            color: #ffffff !important;
+        }
+        .dark-mode .country-card {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        .dark-mode .info-box {
+            background-color: #2c2c2c;
+            border-color: #444;
+        }
+        .dark-mode .btn {
+            background-color: #444;
+            color: #ffffff;
+        }
+        .dark-mode .btn:hover {
+            background-color: #555;
+        }
+    </style>
+    {% csrf_token %}
+</head>
+<body>
+    <script>
+    // Sayfa yüklendiğinde tema durumunu kontrol et
+    document.addEventListener('DOMContentLoaded', function() {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    });
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        // Tema durumunu localStorage'da sakla
+        if (document.body.classList.contains('dark-mode')) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    }
+    </script>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'user_map' %}">Dünya Ülkeleri Hayat Endeksi</a>
+            <div class="d-flex">
+                <!-- Tema Değiştir Butonu -->
+                <button class="btn btn-outline-primary me-2" onclick="toggleTheme()">Temayı Değiştir</button>
+                <a href="{% url 'user_map' %}" class="btn btn-primary">
+                    <i class="fas fa-map me-2"></i>Haritaya Dön
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mesaj Container -->
+    <div id="message-container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Favoriler Container -->
+    <div class="favorites-container">
+        {% for favorite in favorites %}
+        <div class="country-card">
+            <div class="country-header">
+                <h2 class="country-name">{{ favorite.country_name }}</h2>
+                <button class="btn btn-remove-favorite" onclick="removeFromFavorites('{{ favorite.country_name }}')">
+                    <i class="fas fa-heart-broken"></i>
+                    Favorilerden Çıkar
+                </button>
+            </div>
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-title">Şehir</div>
+                    <div class="info-content">{{ favorite.data.City }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Sıralama X</div>
+                    <div class="info-content">{{ favorite.data.rank_x }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Güneşli Saatler</div>
+                    <div class="info-content">{{ favorite.data.sunshine_hours }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Yaşam Beklentisi</div>
+                    <div class="info-content">{{ favorite.data.life_expectancy }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Kirlilik İndeksi</div>
+                    <div class="info-content">{{ favorite.data.pollution_index }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Mutluluk Seviyesi</div>
+                    <div class="info-content">{{ favorite.data.happiness_levels }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Açık Hava Aktiviteleri</div>
+                    <div class="info-content">{{ favorite.data.outdoor_activities }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Paket Servis Yerleri</div>
+                    <div class="info-content">{{ favorite.data.takeout_places }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Yaşam Maliyeti İndeksi</div>
+                    <div class="info-content">{{ favorite.data.cost_living_index }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Kira İndeksi</div>
+                    <div class="info-content">{{ favorite.data.rent_index }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Yaşam+Kira Maliyeti İndeksi</div>
+                    <div class="info-content">{{ favorite.data.cost_living_rent_index }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Market İndeksi</div>
+                    <div class="info-content">{{ favorite.data.groceries_index }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Restoran Fiyat İndeksi</div>
+                    <div class="info-content">{{ favorite.data.restaurant_price_index }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Yerel Alım Gücü</div>
+                    <div class="info-content">{{ favorite.data.local_purchasing_power }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Sıralama Y</div>
+                    <div class="info-content">{{ favorite.data.rank_y }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Obezite Seviyeleri</div>
+                    <div class="info-content">{{ favorite.data.obesity_levels }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Yıllık Çalışma Saati</div>
+                    <div class="info-content">{{ favorite.data.annual_hours_worked }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Spor Salonu Üyelik Ücreti</div>
+                    <div class="info-content">{{ favorite.data.gym_membership_cost }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Su Şişesi Maliyeti</div>
+                    <div class="info-content">{{ favorite.data.water_bottle_cost }}</div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info w-100 text-center">
+            Henüz favori ülkeniz bulunmamaktadır.
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        function removeFromFavorites(countryName) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: `${countryName} favorilerinizden kaldırılacak.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Evet, kaldır',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    
+                    fetch('/add-to-favorites/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            country_name: countryName,
+                            action: 'remove'
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.message || 'Sunucu hatası');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'removed') {
+                            Swal.fire({
+                                title: 'Başarılı!',
+                                text: 'Ülke favorilerinizden kaldırıldı.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Hata!',
+                                text: data.message || 'Bir hata oluştu.',
+                                icon: 'error'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: error.message || 'Bir hata oluştu.',
+                            icon: 'error'
+                        });
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 3000);
+        });
+    </script>
+</body>
+</html> 
